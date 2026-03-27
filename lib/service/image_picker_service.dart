@@ -3,35 +3,28 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ImagePickerService {
-  Future<List<String>?> pickImage(BuildContext context) async {
+  Future<String?> pickImage(BuildContext context) async {
     try {
       bool hasPermission = await _checkPermission(context);
       if (!hasPermission) {
         return null;
       }
       final ImagePicker picker = ImagePicker();
-      final List<XFile> images = await picker.pickMultiImage();
+      final XFile? images = await picker.pickImage(source: ImageSource.gallery);
 
-      return images.map((image) => image.path).toList();
+      return images?.path;
     } catch (e) {
       return null;
     }
   }
-  Future<List<String>?> pickCameraImage(BuildContext context) async {
+  Future<String?> pickCameraImage(BuildContext context) async {
     try {
-      bool hasPermission = await _checkPermission(context);
-      if (!hasPermission) {
-        return null;
-      }
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.camera);
 
-      if (image != null) {
-        return [image.path];
-      } else {
-        return null;
-      }
+      return image?.path;
     } catch (e) {
+      debugPrint('pickCameraImage error: $e');
       return null;
     }
   }
@@ -46,10 +39,11 @@ class ImagePickerService {
         statuses[Permission.photos]!.isGranted ||
         statuses[Permission.storage]!.isGranted;
     if (!hasPermission) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Permission denied. Please grant permission to access photos.',
+            'Permission denied. Please grant permission to access camera and photos.',
           ),
         ),
       );

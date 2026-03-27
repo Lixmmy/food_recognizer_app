@@ -10,9 +10,10 @@ void main() {
     MultiProvider(
       providers: [
         Provider(create: (_) => ImagePickerService()),
-        ChangeNotifierProvider(
-          create: (context) =>
-              PhotoController(context.read<ImagePickerService>()),
+        ChangeNotifierProvider<PhotoController>(
+          create: (context) => PhotoController(
+            context.read<ImagePickerService>(),
+          ),
         ),
       ],
       child: MyApp(),

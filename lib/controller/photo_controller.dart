@@ -6,44 +6,34 @@ class PhotoController extends ChangeNotifier {
 
   PhotoController(this._photoPicker);
 
-  List<String>? _paths = [];
-  List<String>? _previousPaths = []; 
+  String? _paths;
+  String? _previousPaths; 
 
-  List<String>? get paths => _paths;
-  List<String>? get previousPaths => _previousPaths;
+  String? get paths => _paths;
+  String? get previousPaths => _previousPaths;
 
   Future<void> getPhoto(BuildContext context) async {
     final newPaths = await _photoPicker.pickImage(context);
-    // Hanya update jika user memilih foto baru (tidak null)
     if (newPaths != null) {
-      _previousPaths = _paths; // Simpan foto lama
-      _paths = newPaths;
-      notifyListeners();
+        _previousPaths = _paths; 
+        _paths = newPaths; 
+        notifyListeners();
     }
   }
 
   Future<void> clearPhoto() async {
-    _paths = [];
-    _previousPaths = [];
+    _paths = null;
+    _previousPaths = null;
     notifyListeners();
   }
 
   Future<void> getCameraPhoto(BuildContext context) async {
     final newPaths = await _photoPicker.pickCameraImage(context);
-    // Hanya update jika user berhasil mengambil foto (tidak null)
     if (newPaths != null) {
-      _previousPaths = _paths; // Simpan foto lama
-      _paths = newPaths;
+      _previousPaths = _paths; 
+      _paths = newPaths; 
       notifyListeners();
     }
   }
 
-  // Method untuk kembali ke foto sebelumnya
-  void restorePreviousPhoto() {
-    if (_previousPaths != null && _previousPaths!.isNotEmpty) {
-      _paths = _previousPaths;
-      _previousPaths = [];
-      notifyListeners();
-    }
-  }
 }
