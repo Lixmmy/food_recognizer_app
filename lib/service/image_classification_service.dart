@@ -1,6 +1,8 @@
 import 'dart:developer';
+import 'dart:isolate';
 
 import 'package:flutter/services.dart';
+import 'package:food_recognizer_app/service/isolate_inference.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class ImageClassificationService {
@@ -11,6 +13,7 @@ class ImageClassificationService {
   late final List<String> labels;
   late Tensor _inputTensor;
   late Tensor _outputTensor;
+  late final IsolateInference isolateInference;
 
   Future<void> loadModel() async {
     final options = InterpreterOptions()
@@ -21,18 +24,51 @@ class ImageClassificationService {
     _inputTensor = _interpreter.getInputTensor(0);
     _outputTensor = _interpreter.getOutputTensor(0);
 
-    log( 'Model loaded successfully with input shape: ${_inputTensor.shape} and output shape: ${_outputTensor.shape}');
+    log(
+      'Model loaded successfully with input shape: ${_inputTensor.shape} and output shape: ${_outputTensor.shape}',
+    );
   }
 
   Future<void> loadLabels() async {
     final labelTxt = await rootBundle.loadString(labelsPath);
     labels = labelTxt.split('\n');
 
-    log('Labels loaded successfully with ${labelTxt.split('\n').length} labels');
+    log(
+      'Labels loaded successfully with ${labelTxt.split('\n').length} labels',
+    );
+  }
+
+  Future<Map<String, dynamic>?> inferenceImage(String path) async {
+    final responsePort = ReceivePort();
+
+    final isolateModel =
+        InferenceModel(
+            path,
+            _interpreter.address,
+            labels,
+            _inputTensor.shape,
+            _outputTensor.shape,
+          )
+          ..responsePort =
+              responsePort.sendPort;
+    isolateInference.sendPort.send(isolateModel);
+
+    final result = await responsePort.first;
+
+    if (result != null && result is int) {
+      return {"label": labels[result], "index": result};
+    }
+    return null;
+  }
+
+  Future<void> close() async {
+    await isolateInference.close();
   }
 
   Future<void> initialize() async {
     await loadModel();
     await loadLabels();
+    isolateInference = IsolateInference();
+    await isolateInference.start();
   }
 }
