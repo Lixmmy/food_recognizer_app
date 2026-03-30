@@ -2,6 +2,7 @@ import 'dart:io';
 
 // import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:food_recognizer_app/controller/image_classification_controller.dart';
 import 'package:food_recognizer_app/controller/photo_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +14,15 @@ class PickerPage extends StatefulWidget {
 }
 
 class _PickerPageState extends State<PickerPage> {
+  late final ImageClassificationController classificationController;
+
+  @override
+  void initState() {
+    super.initState();
+    classificationController = context.read<ImageClassificationController>();
+    classificationController.initialize();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -107,7 +117,12 @@ class _PickerPageState extends State<PickerPage> {
                 photoController.paths != null &&
                         photoController.paths!.isNotEmpty
                     ? ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async{
+                          await classificationController.runClassification(photoController.paths!);
+                          final result = classificationController.classificationResult;
+                          // ignore: use_build_context_synchronously
+                          Navigator.pushNamed(context, '/result_page', arguments: result);
+                        },
                         child: const Text('Analyze Image'),
                       )
                     : SizedBox.shrink(),

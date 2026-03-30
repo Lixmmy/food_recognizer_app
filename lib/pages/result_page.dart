@@ -1,42 +1,61 @@
 import 'package:flutter/material.dart';
 
 class ResultPage extends StatelessWidget {
-  const ResultPage({super.key});
+  final Map<String, double> classificationResult;
+
+  const ResultPage({super.key, required this.classificationResult});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: 
-    Scaffold(
-      appBar: AppBar(
-        title: const Text('Result Page'),
-      ),
-      body: Column(
-       
-        children: [
-          Image(image: AssetImage('assets/picture/satay.jpg')),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text(
-                'Satay',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(width: 10),
-              Text(
-                'Confidence: 95%',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Description:',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+    final topEntry = classificationResult.entries.isNotEmpty
+        ? classificationResult.entries.first
+        : null;
 
-        ],
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Result Page'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: topEntry == null
+              ? const Center(child: Text('No classification result'))
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      topEntry.key,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Confidence: ${(topEntry.value * 100).toStringAsFixed(1)}%',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Top predictions',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    ...classificationResult.entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(entry.key, style: const TextStyle(fontSize: 16)),
+                            Text('${(entry.value * 100).toStringAsFixed(1)}%', style: const TextStyle(fontSize: 16)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+        ),
       ),
-    ),);
+    );
   }
 }

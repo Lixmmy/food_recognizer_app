@@ -6,8 +6,8 @@ import 'package:food_recognizer_app/service/isolate_inference.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class ImageClassificationService {
-  final modelPath = 'assets/models/food_classifier.tflite';
-  final labelsPath = 'assets/models/labels.txt';
+  final modelPath = 'assets/model/food_classifier.tflite';
+  final labelsPath = 'assets/model/labels.txt';
 
   late final Interpreter _interpreter;
   late final List<String> labels;
@@ -38,27 +38,22 @@ class ImageClassificationService {
     );
   }
 
-  Future<Map<String, dynamic>?> inferenceImage(String path) async {
+  Future<Map<String, double>> inferenceImage(String path) async {
     final responsePort = ReceivePort();
 
-    final isolateModel =
-        InferenceModel(
-            path,
-            _interpreter.address,
-            labels,
-            _inputTensor.shape,
-            _outputTensor.shape,
-          )
-          ..responsePort =
-              responsePort.sendPort;
+    final isolateModel = InferenceModel(
+      path,
+      _interpreter.address,
+      labels,
+      _inputTensor.shape,
+      _outputTensor.shape,
+    )..responsePort = responsePort.sendPort;
     isolateInference.sendPort.send(isolateModel);
 
     final result = await responsePort.first;
+    responsePort.close();
 
-    if (result != null && result is int) {
-      return {"label": labels[result], "index": result};
-    }
-    return null;
+    return Map<String, double>.from(result as Map);
   }
 
   Future<void> close() async {
