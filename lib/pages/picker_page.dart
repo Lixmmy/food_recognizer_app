@@ -117,11 +117,22 @@ class _PickerPageState extends State<PickerPage> {
                 photoController.paths != null &&
                         photoController.paths!.isNotEmpty
                     ? ElevatedButton(
-                        onPressed: () async{
-                          await classificationController.runClassification(photoController.paths!);
-                          final result = classificationController.classificationResult;
-                          // ignore: use_build_context_synchronously
-                          Navigator.pushNamed(context, '/result_page', arguments: result);
+                        onPressed: () async {
+                          await classificationController.runClassificationByPath(
+                            photoController.paths!,
+                          );
+                          final result =
+                              classificationController.classificationResult;
+                          final imagePath = photoController.paths!;
+                          Navigator.pushNamed(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            '/result_page',
+                            arguments: {
+                              'result': result,
+                              'imagePath': imagePath,
+                            },
+                          );
                         },
                         child: const Text('Analyze Image'),
                       )

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 class ResultPage extends StatelessWidget {
   final Map<String, double> classificationResult;
+  final String imagePath;
 
-  const ResultPage({super.key, required this.classificationResult});
+  const ResultPage({super.key, required this.classificationResult, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {

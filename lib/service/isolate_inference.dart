@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'package:camera/camera.dart';
+import 'package:food_recognizer_app/utils/image_utils.dart';
 import 'package:image/image.dart' as image_lib;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -23,11 +25,18 @@ class IsolateInference {
     final port = ReceivePort();
     sendPort.send(port.sendPort);
     await for (final InferenceModel isolateModel in port) {
-      // final CameraImage? image = isolateModel.image;
+      final CameraImage? image = isolateModel.image;
       final String? path = isolateModel.path;
       final inputShape = isolateModel.inputShape;
 
-      final imageMatrix = processUploadImage(path!, inputShape);
+      late List<List<List<num>>> imageMatrix;
+      if (path != null) {
+        imageMatrix = processUploadImage(path, inputShape);
+      } else {
+        imageMatrix = processCameraImage(image!, inputShape);
+        continue;
+      }
+
       final input = [imageMatrix];
       final output = [List<int>.filled(isolateModel.outputShape[1], 0)];
       final address = isolateModel.interpreterAddress;
@@ -35,19 +44,20 @@ class IsolateInference {
       final result = runInference(address, input, output);
       int maxScore = result.reduce((a, b) => a > b ? a : b);
       final keys = isolateModel.labels;
-      final value = result.map((e)  => e.toDouble()/maxScore.toDouble()).toList();
+      final value = result
+          .map((e) => e.toDouble() / maxScore.toDouble())
+          .toList();
       var classification = Map.fromIterables(keys, value);
       classification.removeWhere((key, value) => value == 0);
 
       isolateModel.responsePort.send(classification);
-
     }
   }
 
-   Future<void> close() async {
-   _isolate.kill();
-   _receivePort.close();
- }
+  Future<void> close() async {
+    _isolate.kill();
+    _receivePort.close();
+  }
 
   static List<int> runInference(
     int interpreterAddress,
@@ -83,11 +93,36 @@ class IsolateInference {
       }),
     );
   }
+
+  static List<List<List<num>>> processCameraImage(
+    CameraImage image,
+    List<int> inputShape,
+  ) {
+    image_lib.Image? img;
+    img = ImageUtils.convertCameraImage(image);
+    image_lib.Image imageInput = image_lib.copyResize(
+      img!,
+      width: inputShape[1],
+      height: inputShape[2],
+    );
+
+    if (Platform.isAndroid) {
+      imageInput = image_lib.copyRotate(imageInput, angle: 90);
+    }
+    final imageMatrix = List.generate(
+      imageInput.height,
+      (y) => List.generate(imageInput.width, (x) {
+        final pixel = imageInput.getPixel(x, y);
+        return [pixel.r, pixel.g, pixel.b];
+      }),
+    );
+    return imageMatrix;
+  }
 }
 
 class InferenceModel {
   String? path;
-  // CameraImage? image;
+  CameraImage? image;
   int interpreterAddress;
   List<String> labels;
   List<int> inputShape;
@@ -96,7 +131,7 @@ class InferenceModel {
 
   InferenceModel(
     this.path,
-    // this.image,
+    this.image,
     this.interpreterAddress,
     this.labels,
     this.inputShape,

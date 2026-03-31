@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:food_recognizer_app/service/image_classification_service.dart';
 
@@ -9,7 +10,7 @@ class ImageClassificationController extends ChangeNotifier {
   Map<String, double> get classificationResult {
     final entries = _classification.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return Map.fromEntries(entries.take(3));
+    return Map.fromEntries(entries.take(1));
   }
 
   ImageClassificationController(this._service);
@@ -18,8 +19,14 @@ class ImageClassificationController extends ChangeNotifier {
     await _service.initialize();
   }
 
-  Future<void> runClassification(String imagePath) async {
-    _classification = await _service.inferenceImage(imagePath);
+  Future<void> runClassificationByPath(String imagePath) async {
+    _classification = await _service.inferenceImagePath(imagePath);
+
+    notifyListeners();
+  }
+
+  Future<void> runClassificationByCamera(CameraImage image) async {
+    _classification = await _service.inferenceImageCamera(image);
 
     notifyListeners();
   }
