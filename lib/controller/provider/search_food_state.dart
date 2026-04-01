@@ -1,3 +1,4 @@
+import 'package:food_recognizer_app/models/meal.dart';
 import 'package:food_recognizer_app/models/meal_response.dart';
 
 sealed class SearchFoodState {}
@@ -7,7 +8,7 @@ final class SearchFoodInitial extends SearchFoodState {}
 final class SearchFoodLoading extends SearchFoodState {}
 
 final class SearchFoodSuccess extends SearchFoodState {
-  final List<MealsResponse> meals;
+  final MealsResponse meals;
 
   SearchFoodSuccess({required this.meals});
 }

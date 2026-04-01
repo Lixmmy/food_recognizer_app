@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:food_recognizer_app/controller/provider/search_food_provider.dart';
+import 'package:provider/provider.dart';
 
-class ResultPage extends StatelessWidget {
+class ResultPage extends StatefulWidget {
   final Map<String, double> classificationResult;
   final String imagePath;
 
   const ResultPage({super.key, required this.classificationResult, required this.imagePath});
 
   @override
+  State<ResultPage> createState() => _ResultPageState();
+}
+
+class _ResultPageState extends State<ResultPage> {
+
+  @override
+  void initState() {
+    super.initState();
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SearchFoodProvider>(
+        context,
+        listen: false,
+      ).fetchFoodData(widget.classificationResult.entries.first.key);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final topEntry = classificationResult.entries.isNotEmpty
-        ? classificationResult.entries.first
+    final topEntry = widget.classificationResult.entries.isNotEmpty
+        ? widget.classificationResult.entries.first
         : null;
 
     return SafeArea(
@@ -41,7 +60,7 @@ class ResultPage extends StatelessWidget {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
-                    ...classificationResult.entries.map((entry) {
+                    ...widget.classificationResult.entries.map((entry) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Row(
