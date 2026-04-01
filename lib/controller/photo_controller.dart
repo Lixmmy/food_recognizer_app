@@ -36,4 +36,10 @@ class PhotoController extends ChangeNotifier {
     }
   }
 
+  Future<void> updatePhotoPath(String newPath) async {
+    _previousPaths = _paths;
+    _paths = newPath;
+    notifyListeners();
+  }
+
 }

@@ -1,4 +1,3 @@
-import 'package:food_recognizer_app/models/meal.dart';
 import 'package:food_recognizer_app/models/meal_response.dart';
 
 sealed class SearchFoodState {}

@@ -39,10 +39,14 @@ class ImageClassificationService {
 
   Future<void> loadLabels() async {
     final labelTxt = await rootBundle.loadString(labelsPath);
-    labels = labelTxt.split('\n');
+    labels = labelTxt
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
 
     log(
-      'Labels loaded successfully with ${labelTxt.split('\n').length} labels',
+      'Labels loaded successfully with ${labels.length} labels',
     );
   }
 

@@ -39,7 +39,7 @@ class ApiService {
         scheme: 'https',
         host: 'themealdb.com',
         path: 'api/json/v1/1/$endpoint',
-        queryParameters: {'s': queryParameters},
+        queryParameters: {'s': queryParameters?.trim()},
       );
 
       final Map<String, String> headers = {'Accept': 'application/json'};
@@ -64,8 +64,8 @@ class ApiService {
   Future<MealsResponse> getClassificationName(String classification) async {
     final response = await _requestGet(
       'search.php',
-      'Tidak Ada restaurant yang ditemukan',
-      queryParameters: classification,
+      'Tidak ada data tentang makanan ini yang ditemukan',
+      queryParameters: classification.trim(),
     );
     return MealsResponse.fromJson(response);
   }
