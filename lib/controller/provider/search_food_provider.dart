@@ -5,11 +5,12 @@ import 'package:food_recognizer_app/service/api_service.dart';
 class SearchFoodProvider extends ChangeNotifier {
   final ApiService _apiService;
   String _query = '';
-
+  String? _errorMessage;
   SearchFoodState _state = SearchFoodInitial();
 
   String get getQuerry => _query;
   SearchFoodState get state => _state;
+  String? get errorMessage => _errorMessage;
 
   SearchFoodProvider(this._apiService);
 
@@ -24,6 +25,7 @@ class SearchFoodProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _state = SearchFoodFailure(message: e.toString());
+      _errorMessage = e.toString();
       notifyListeners();
     }
   }

@@ -58,14 +58,24 @@ class MyApp extends StatelessWidget {
         NavigationRoute.pickerPage.path: (context) => const PickerPage(),
         NavigationRoute.resultPage.path: (context) {
           final args = ModalRoute.of(context)!.settings.arguments;
-          final classificationResult = args is Map<String, double>
-              ? args
-              : <String, double>{};
-          final imagePath = args is String ? args : '';
-          return ResultPage(
-            classificationResult: classificationResult,
-            imagePath: imagePath,
-          );
+          if (args is Map<String, dynamic>) {
+            final classificationResult =
+                (args['result'] as Map<String, dynamic>?)?.map(
+                  // ignore: unnecessary_cast
+                  (k, v) => MapEntry(k as String, (v as num).toDouble()),
+                ) ??
+                <String, double>{};
+            final imagePath = args['imagePath'] as String? ?? '';
+            return ResultPage(
+              classificationResult: classificationResult,
+              imagePath: imagePath,
+            );
+          } else {
+            return const ResultPage(
+              classificationResult: <String, double>{},
+              imagePath: '',
+            );
+          }
         },
       },
     );
