@@ -34,7 +34,6 @@ class IsolateInference {
         imageMatrix = processUploadImage(path, inputShape);
       } else {
         imageMatrix = processCameraImage(image!, inputShape);
-        continue;
       }
 
       final input = [imageMatrix];
@@ -42,11 +41,13 @@ class IsolateInference {
       final address = isolateModel.interpreterAddress;
 
       final result = runInference(address, input, output);
-      int maxScore = result.reduce((a, b) => a > b ? a : b);
+
+      final double totalScore = result.fold(0.0, (prev, e) => prev + e.toDouble());
+      final value = totalScore > 0
+          ? result.map((e) => e.toDouble() / totalScore).toList()
+          : result.map((e) => e.toDouble()).toList();
+
       final keys = isolateModel.labels;
-      final value = result
-          .map((e) => e.toDouble() / maxScore.toDouble())
-          .toList();
       var classification = Map.fromIterables(keys, value);
       classification.removeWhere((key, value) => value == 0);
 
